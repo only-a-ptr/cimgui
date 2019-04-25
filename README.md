@@ -85,3 +85,21 @@ Notes:
 * [imgui-pas](https://github.com/dpethes/imgui-pas)
 * [odin-imgui](https://github.com/ThisDrunkDane/odin-imgui)
 * [LuaJIT-imgui](https://github.com/sonoro1234/LuaJIT-ImGui)
+
+# AngelScript experiment notes:
+
+1. Using `cl` (host x64 target x64) on Win10 fails:
+Update: same with Gcc (mingw.org, mingw32), plus some `gcc: error: CreateProcess: No such file or directory`
+```
+-----------------end check arg detection-----------------------
+luajit: ./generator2.lua:562: attempt to index field 'Pair' (a nil value)
+stack traceback:
+        ./generator2.lua:562: in main chunk
+        [C]: at 0x00402070
+````
+
+2. This setup works:
+    Platform: win10 x64;
+    https://codeload.github.com/luapower/luajit/zip/master - ZIP download with x64 binaries 
+    http://www.msys2.org/ (msys2-x86_64-20180531.exe)
+    https://stackoverflow.com/questions/30069830/how-to-install-mingw-w64-and-msys2 - using mingw-w64-x86_64-gcc
