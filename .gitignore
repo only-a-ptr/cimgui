@@ -36,3 +36,6 @@ CMakeLists.txt
 cimgui/.vs/
 cimgui/cimgui.vcxproj.user
 cimgui/x64/
+
+# Angelscript
+angelscript/as-imgui-gen.cpp
