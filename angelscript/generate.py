@@ -17,31 +17,12 @@ VERBOSE = True # Print debug comments to the output C++ code
 
 f = open(OUT_CPP_PATH, mode='w')
 print("""
+#include "as-imgui.hpp"
 #include <string>
-#include <exception>
-
-// ================================================================================================
-//     TODO: move to header
-// ================================================================================================
-
-namespace imgui_angelscript 
-{
-
-class SetupError: public std::runtime_error  
-{
-public:
-    SetupError(const char* msg): runtime_error(msg) {}
-    //const char* what() { return std::runtime_error::what(); }
-};
-
-} // namespace imgui_angelscript
-
 
 // ================================================================================================
 //     Registration helper class
 // ================================================================================================
-
-using namespace AngelScript;
 
 class Helper
 {
@@ -81,7 +62,7 @@ public:
         }
     }
     
-    void RegProperty(const char* decl, offset)
+    void RegProperty(const char* decl, size_t offset)
     {
         int res = m_engine->RegisterObjectProperty(m_obj_name, decl, offset);
         if (res < asSUCCESS)
@@ -120,7 +101,7 @@ public:
     
     void RegEnum(const char* name)
     {
-        int res = m_engine.RegisterEnum(name);
+        int res = m_engine->RegisterEnum(name);
         if (res < asSUCCESS)
         {
             throw imgui_angelscript::SetupError("RegisterEnum() failed"); // TODO: more descriptive!
@@ -129,7 +110,7 @@ public:
     
     void RegEnumVal(const char* name, int value)
     {
-        int res = m_engine.RegisterEnumValue(m_enum_name, name, value);
+        int res = m_engine->RegisterEnumValue(m_enum_name, name, value);
         if (res < asSUCCESS)
         {
             throw imgui_angelscript::SetupError("RegisterEnumValue() failed"); // TODO: more descriptive!
@@ -139,7 +120,13 @@ private:
     asIScriptEngine* m_engine;
     const char*      m_obj_name;
     const char*      m_enum_name;
-};""", file=f)
+};
+
+/// @throws SetupException on error
+void imgui_angelscript::RegisterInterface(asIScriptEngine *engine)
+{
+    Helper h(engine);
+""", file=f)
 
 print("""
 // ================================================================================================
@@ -238,3 +225,6 @@ for name in definitions:
             process_global_fn(entry)
         else:
             pass
+
+print("} // void RegisterInterface()", file=f)
+f.close()

@@ -39,3 +39,6 @@ cimgui/x64/
 
 # Angelscript
 angelscript/as-imgui-gen.cpp
+angelscript/test-app/.vs
+angelscript/test-app/test-app/Debug
+angelscript/test-app/test-app/Release
