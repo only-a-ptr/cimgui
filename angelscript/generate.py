@@ -80,6 +80,15 @@ public:
             throw imgui_angelscript::SetupError("RegisterObjectBehaviour() failed"); // TODO: more descriptive!
         }
     }
+    
+    void RegProperty(const char* decl, offset)
+    {
+        int res = m_engine->RegisterObjectProperty(m_obj_name, decl, offset);
+        if (res < asSUCCESS)
+        {
+            throw imgui_angelscript::SetupError("RegisterObjectProperty() failed"); // TODO: more descriptive!
+        }
+    }    
 
     void RegConstructor(const char* decl, const asSFuncPtr & ptr)
     {
@@ -135,8 +144,7 @@ private:
 print("""
 // ================================================================================================
 //     Enums (generated)
-// ================================================================================================
-""", file=f)
+// ================================================================================================""", file=f)
 
 structs_and_enums = json.load(open(STRUCTS_ENUMS_PATH))
 enums = structs_and_enums['enums']
@@ -145,13 +153,40 @@ for enum_name in enums:
         print('\n//{}'.format(enum_name), file=f)
     print('h.RegEnum({});'.format(enum_name), file=f)
     for meta in enums[enum_name]:
-        print('  h.RegEnumValue({}, ({}));'.format(meta['name'], meta['value']), file=f); #));
+        print('  h.RegEnumValue({}, ({}));'.format(meta['name'], meta['value']), file=f);
+        
+print("""
+// ================================================================================================
+//     Structs (generated)
+// ================================================================================================""", file=f)
+
+def process_struct(st_name, fields):
+    if VERBOSE:
+        print('\n//{}'.format(st_name), file=f);
+    flags = ['asOBJ_VALUE']
+    if st_name in ['ImVec2', 'ImVec4']:
+        flags.append('asOBJ_APP_CLASS_ALLFLOATS')
+    print('h.RegObject("{}", sizeof({}), {});'.format(st_name, st_name, '|'.join(flags)), file=f);
+    for field in fields:
+        print('  h.RegProperty("{} {}", offsetof({}, {}));'.format(field['type'], field['name'], st_name, field['name']), file=f)        
+    
+
+structs = structs_and_enums['structs']
+
+ST_PRIORITY = [ 'ImVec2', 'ImVec4', 'ImColor' ] # Must be registered first, in this order
+
+for st_name in ST_PRIORITY:
+    if st_name in structs:
+        process_struct(st_name, structs[st_name])
+
+for st_name in structs:
+    if st_name not in ST_PRIORITY:
+        process_struct(st_name, structs[st_name])
 
 print("""
 // ================================================================================================
 //     Functions (generated)
-// ================================================================================================
-""", file=f)
+// ================================================================================================""", file=f)
 
 FN_BLACKLIST = [
     # C Vararg helpers
