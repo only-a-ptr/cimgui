@@ -108,7 +108,7 @@ public:
         }
     }
     
-    void RegEnumVal(const char* name, int value)
+    void RegEnumValue(const char* name, int value)
     {
         int res = m_engine->RegisterEnumValue(m_enum_name, name, value);
         if (res < asSUCCESS)
@@ -138,9 +138,9 @@ enums = structs_and_enums['enums']
 for enum_name in enums:
     if VERBOSE:
         print('\n//{}'.format(enum_name), file=f)
-    print('h.RegEnum({});'.format(enum_name), file=f)
+    print('h.RegEnum("{}");'.format(enum_name), file=f)
     for meta in enums[enum_name]:
-        print('  h.RegEnumValue({}, ({}));'.format(meta['name'], meta['value']), file=f);
+        print('  h.RegEnumValue("{}", ({}));'.format(meta['name'], meta['value']), file=f);
         
 print("""
 // ================================================================================================
