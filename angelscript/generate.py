@@ -9,6 +9,7 @@ import os.path
 
 # Reference: https://github.com/cimgui/cimgui#definitions-description
 DEFINITIONS_PATH = 'definitions.json'
+STRUCTS_ENUMS_PATH = 'structs_and_enums.json'
 OUT_CPP_PATH = 'as-imgui-gen.cpp'
 VERBOSE = True # Print debug comments to the output C++ code
 
@@ -45,7 +46,7 @@ using namespace AngelScript;
 class Helper
 {
 public:
-    Helper(asIScriptEngine* e): m_engine(e), m_obj_name(nullptr) {}
+    Helper(asIScriptEngine* e): m_engine(e), m_obj_name(nullptr), m_enum_name(nullptr) {}
 
     void SetActiveObject(const char* name)
     {
@@ -107,11 +108,46 @@ public:
             throw imgui_angelscript::SetupError("RegisterGlobalFunction() failed"); // TODO: more descriptive!
         }
     }
+    
+    void RegEnum(const char* name)
+    {
+        int res = m_engine.RegisterEnum(name);
+        if (res < asSUCCESS)
+        {
+            throw imgui_angelscript::SetupError("RegisterEnum() failed"); // TODO: more descriptive!
+        }
+    }
+    
+    void RegEnumVal(const char* name, int value)
+    {
+        int res = m_engine.RegisterEnumValue(m_enum_name, name, value);
+        if (res < asSUCCESS)
+        {
+            throw imgui_angelscript::SetupError("RegisterEnumValue() failed"); // TODO: more descriptive!
+        }
+    }    
 private:
     asIScriptEngine* m_engine;
     const char*      m_obj_name;
-};
+    const char*      m_enum_name;
+};""", file=f)
 
+print("""
+// ================================================================================================
+//     Enums (generated)
+// ================================================================================================
+""", file=f)
+
+structs_and_enums = json.load(open(STRUCTS_ENUMS_PATH))
+enums = structs_and_enums['enums']
+for enum_name in enums:
+    if VERBOSE:
+        print('\n//{}'.format(enum_name), file=f)
+    print('h.RegEnum({});'.format(enum_name), file=f)
+    for meta in enums[enum_name]:
+        print('  h.RegEnumValue({}, ({}));'.format(meta['name'], meta['value']), file=f); #));
+
+print("""
 // ================================================================================================
 //     Functions (generated)
 // ================================================================================================
@@ -137,7 +173,7 @@ def process_global_fn(meta):
     for arg_meta in meta['argsT']:
         out_type = arg_meta['type']
         out_name = arg_meta['name']
-        if out_type == '...': # C vararg
+        if out_type == '...': # C vararg arguments
             continue # The associated format string gets replaced by 'string'
         if out_type == 'const char*':
             out_type = 'string' # Just use wrapped std::string or whatever
